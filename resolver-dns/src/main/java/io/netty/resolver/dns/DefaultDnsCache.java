@@ -307,6 +307,9 @@ public class DefaultDnsCache implements DnsCache {
                         // If the list is empty we just return early and so not allocate a new ArrayList.
                         if (compareAndSet(entries, Collections.<DefaultDnsCacheEntry>emptyList())) {
                             return false;
+                        } else {
+                            // try again as the CAS failed
+                            continue;
                         }
                     }
                     return false;
