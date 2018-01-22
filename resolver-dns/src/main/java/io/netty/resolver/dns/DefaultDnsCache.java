@@ -298,21 +298,16 @@ public class DefaultDnsCache implements DnsCache {
                 List<DefaultDnsCacheEntry> entries = get();
                 int size = entries.size();
                 if (size == 0) {
-                    // If the list is empty we just return early and so not allocate a new ArrayList.
-                    if (compareAndSet(entries, Collections.<DefaultDnsCacheEntry>emptyList())) {
-                        return false;
-                    }
+                    return false;
                 } else if (size == 1) {
                     if (entries.get(0).equals(entry)) {
                         // If the list is empty we just return early and so not allocate a new ArrayList.
                         if (compareAndSet(entries, Collections.<DefaultDnsCacheEntry>emptyList())) {
-                            return false;
-                        } else {
-                            // try again as the CAS failed
-                            continue;
+                            return true;
                         }
+                    } else {
+                        return false;
                     }
-                    return false;
                 } else {
                     // Just size the new ArrayList as before as we may not find the entry we are looking for and not
                     // want to cause an extra allocation / memory copy in this case.
@@ -327,7 +322,8 @@ public class DefaultDnsCache implements DnsCache {
                         }
                     }
                     if (compareAndSet(entries, Collections.unmodifiableList(newEntries))) {
-                        return false;
+                        // This will return true if an entry was removed.
+                        return newEntries.size() != size;
                     }
                 }
             }
